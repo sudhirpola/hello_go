@@ -84,16 +84,14 @@ jobs:
 
         # Create Dockerfile if it doesn't exist
         if [ ! -f Dockerfile ]; then
+          cat > Dockerfile << 'DOCKERFILE'
+        FROM alpine:latest
+        RUN apk --no-cache add ca-certificates
+        WORKDIR /app
+        COPY my-dazl-project/my-dazl-project /app/
+        COPY my-dazl-project/logging.yaml /app/
         CMD ["/app/my-dazl-project"]
-        EOF
-        fi
-
-        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
-        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-        docker push ${IMAGE_NAME}:latest
-
-    # Step 7: Clean up temporary build directory
-    # - Removes publish_output directory
+        DOCKERFILE
     # - Removes compiled binary from project folder
     - name: Cleanup artifacts directory
       run: make clean
