@@ -78,7 +78,7 @@ jobs:
       artifact_name: my-dazl-project
       artifact_path: publish_output
     secrets:
-      github_token: ${{ secrets.GITHUB_TOKEN }}
+      gh_token: ${{ secrets.GITHUB_TOKEN }}
 
   # Step 7: Clean up temporary build directory
   # - Removes publish_output directory
