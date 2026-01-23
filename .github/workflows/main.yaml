@@ -1,28 +1,66 @@
+# Workflow name displayed in GitHub Actions UI
 name: my first workflow
 
-on: push
+# Trigger: Run this workflow on every push to any branch or when tags are pushed
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
 
 jobs:
   build:
+    # Use the latest Ubuntu runner provided by GitHub
     runs-on: ubuntu-latest
 
     steps:
+    # Step 1: Checkout the repository code
     - name: Checkout code
       uses: actions/checkout@v3
+
+    # Step 2: Setup Go programming environment
+    # - Installs Go version 1.23.3
+    # - Enables dependency caching using go.sum file location
     - name: Setup Go environment
       uses: actions/setup-go@v6.2.0
       with:
         go-version: '1.23.3'
         cache-dependency-path: my-dazl-project/go.sum
 
+    # Step 3: Build and prepare artifacts using Makefile
+    # - Compiles the Go application
+    # - Creates publish_output directory
+    # - Copies binary and configuration files
+    # - Displays artifact contents
     - name: Build and prepare artifacts
       run: make all
 
+    # Step 4: Upload build artifacts to GitHub
+    # - Artifacts can be downloaded from the Actions run page
+    # - Artifacts are stored for 90 days by default
     - name: Upload artifacts
       uses: actions/upload-artifact@v6.0.0
       with:
         name: my-dazl-project
         path: publish_output
 
+    # Step 5: Create GitHub Release and upload artifacts (only for tags)
+    # - Creates a new release when a version tag (v*) is pushed
+    # - Uploads all files from publish_output to the release
+    # - Makes the release available for download
+    - name: Create Release and Upload Assets
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: publish_output/*
+        draft: false
+        prerelease: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    # Step 6: Clean up temporary build directory
+    # - Removes publish_output directory
+    # - Removes compiled binary from project folder
     - name: Cleanup artifacts directory
       run: make clean
