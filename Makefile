@@ -6,7 +6,7 @@ all: build prepare-artifacts display-artifacts
 # Build the Go project
 build:
 	@echo "Building Go project..."
-	cd my-dazl-project && go build -v ./...
+	cd my-dazl-project && CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -v ./...
 
 # Prepare artifacts for publishing
 prepare-artifacts:
