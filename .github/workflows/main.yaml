@@ -1,5 +1,5 @@
 # Workflow name displayed in GitHub Actions UI
-name: my first workflow
+name: Build and Publish
 
 # Trigger: Run this workflow on every push to any branch or when tags are pushed
 on:
@@ -13,6 +13,10 @@ jobs:
   build:
     # Use the latest Ubuntu runner provided by GitHub
     runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+      packages: write
 
     steps:
     # Step 1: Checkout the repository code
@@ -59,7 +63,36 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # Step 6: Clean up temporary build directory
+    # Step 6: Build and push Docker image to GitHub Container Registry
+    # - Logs in to ghcr.io
+    # - Creates a Docker image with the Go binary
+    # - Pushes image tagged with commit SHA and latest
+    # - Only runs when a version tag (v*) is pushed
+    - name: Log in to GitHub Container Registry
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push Docker image
+      if: startsWith(github.ref, 'refs/tags/v')
+      run: |
+        IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/my-dazl-project
+        IMAGE_TAG=${{ github.sha }}
+
+        # Create Dockerfile if it doesn't exist
+        if [ ! -f Dockerfile ]; then
+        CMD ["/app/my-dazl-project"]
+        EOF
+        fi
+
+        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
+        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${IMAGE_NAME}:latest
+
+    # Step 7: Clean up temporary build directory
     # - Removes publish_output directory
     # - Removes compiled binary from project folder
     - name: Cleanup artifacts directory
