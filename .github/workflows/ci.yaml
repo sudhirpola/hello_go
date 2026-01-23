@@ -9,3 +9,7 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
+    - name: Setup Go environment
+      uses: actions/setup-go@v6.2.0
+      with:
+        go-version: go1.23.3
