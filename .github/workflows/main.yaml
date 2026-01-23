@@ -22,9 +22,16 @@ jobs:
       run: |
         mkdir -p publish_output
         cp my-dazl-project/my-dazl-project publish_output/
+        cp my-dazl-project/logging.yaml publish_output/
+
+    - name: Display artifact contents
+      run: ls -lh publish_output/
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v6.0.0
       with:
         name: my-dazl-project
         path: publish_output
+
+    - name: Cleanup artifacts directory
+      run: rm -rf publish_output
