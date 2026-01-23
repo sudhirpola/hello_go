@@ -44,7 +44,7 @@ jobs:
     # - Artifacts can be downloaded from the Actions run page
     # - Artifacts are stored for 90 days by default
     - name: Upload artifacts
-      uses: actions/upload-artifact@v6.0.0
+      uses: actions/upload-artifact@v4
       with:
         name: my-dazl-project
         path: publish_output
@@ -63,45 +63,34 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    # Step 6: Build and push Docker image to GitHub Container Registry
-    # - Logs in to ghcr.io
-    # - Creates a Docker image with the Go binary
-    # - Pushes image tagged with commit SHA and latest
-    # - Only runs when a version tag (v*) is pushed
-    - name: Log in to GitHub Container Registry
-      if: startsWith(github.ref, 'refs/tags/v')
-      uses: docker/login-action@v2
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+  # Step 6: Build and push Docker image to GitHub Container Registry
+  # - Uses the reusable docker.yaml workflow
+  # - Downloads artifacts and builds Docker image
+  # - Only runs when a version tag (v*) is pushed
+  docker:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    uses: ./.github/workflows/docker.yaml
+    with:
+      image_name: ghcr.io/${{ github.repository_owner }}/my-dazl-project
+      dockerfile_path: ./Dockerfile
+      context_path: .
+      artifact_name: my-dazl-project
+      artifact_path: publish_output
+    secrets:
+      github_token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Build and push Docker image
-      if: startsWith(github.ref, 'refs/tags/v')
-      run: |
-        IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/my-dazl-project
-        IMAGE_TAG=${{ github.sha }}
-        VERSION_TAG=${{ github.ref_name }}
+  # Step 7: Clean up temporary build directory
+  # - Removes publish_output directory
+  # - Removes compiled binary from project folder
+  cleanup:
+    needs: build
+    if: always() && needs.build.result != 'skipped'
+    runs-on: ubuntu-latest
 
-        # Create Dockerfile if it doesn't exist
-        if [ ! -f Dockerfile ]; then
-          cat > Dockerfile << 'DOCKERFILE'
-        FROM alpine:latest
-        RUN apk --no-cache add ca-certificates
-        WORKDIR /app
-        COPY publish_output/my-dazl-project /app/
-        COPY publish_output/logging.yaml /app/
-        CMD ["/app/my-dazl-project"]
-        DOCKERFILE
-        fi
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:${VERSION_TAG} -t ${IMAGE_NAME}:latest .
-        docker push ${IMAGE_NAME}:${IMAGE_TAG}
-        docker push ${IMAGE_NAME}:${VERSION_TAG}
-        docker push ${IMAGE_NAME}:latest
-
-    # Step 7: Clean up temporary build directory
-    # - Removes publish_output directory
-    # - Removes compiled binary from project folder
     - name: Cleanup artifacts directory
       run: make clean
