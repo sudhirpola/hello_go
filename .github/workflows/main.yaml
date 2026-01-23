@@ -13,3 +13,7 @@ jobs:
       uses: actions/setup-go@v6.2.0
       with:
         go-version: '1.23.3'
+        cache-dependency-path: my-dazl-project/go.sum
+    - name: Build Go My-dazl-project
+      run: go build -v ./...
+      working-directory: ./my-dazl-project
