@@ -1,0 +1,25 @@
+name: Auto comment on issue
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+
+    permissions:
+      issues: write
+
+    steps:
+      - name: Add comment to new issue
+        uses: actions/github-script@v8
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🎉 Thank you for opening this issue! 👀 We will look into it as soon as possible. 🚀\n\n📝 Please make sure to provide all necessary details to help us resolve this quickly.\n\n💡 **Tip:** Check our documentation or existing issues for similar problems before we investigate.'
+            })
