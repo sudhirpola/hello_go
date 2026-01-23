@@ -92,6 +92,11 @@ jobs:
         COPY my-dazl-project/logging.yaml /app/
         CMD ["/app/my-dazl-project"]
         DOCKERFILE
-    # - Removes compiled binary from project folder
-    - name: Cleanup artifacts directory
-      run: make clean
+        fi
+
+        docker build -t ${IMAGE_NAME}:${IMAGE_TAG} -t ${IMAGE_NAME}:latest .
+        docker push ${IMAGE_NAME}:${IMAGE_TAG}
+        docker push ${IMAGE_NAME}:latest
+
+    # Step 7: Clean up temporary build directory
+    # - Removes publish_output directory
