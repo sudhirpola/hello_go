@@ -17,3 +17,14 @@ jobs:
     - name: Build Go My-dazl-project
       run: go build -v ./...
       working-directory: ./my-dazl-project
+
+    - name: Prepare artifacts
+      run: |
+        mkdir -p publish_output
+        cp my-dazl-project/my-dazl-project publish_output/
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v6.0.0
+      with:
+        name: my-dazl-project
+        path: publish_output
