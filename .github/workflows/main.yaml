@@ -83,8 +83,9 @@ jobs:
   # Step 7: Clean up temporary build directory
   # - Removes publish_output directory
   # - Removes compiled binary from project folder
+  # - Waits for docker job to complete (if it runs)
   cleanup:
-    needs: build
+    needs: [build, docker]
     if: always() && needs.build.result != 'skipped'
     runs-on: ubuntu-latest
 
