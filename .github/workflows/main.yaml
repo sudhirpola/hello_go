@@ -14,18 +14,9 @@ jobs:
       with:
         go-version: '1.23.3'
         cache-dependency-path: my-dazl-project/go.sum
-    - name: Build Go My-dazl-project
-      run: go build -v ./...
-      working-directory: ./my-dazl-project
 
-    - name: Prepare artifacts
-      run: |
-        mkdir -p publish_output
-        cp my-dazl-project/my-dazl-project publish_output/
-        cp my-dazl-project/logging.yaml publish_output/
-
-    - name: Display artifact contents
-      run: ls -lh publish_output/
+    - name: Build and prepare artifacts
+      run: make all
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v6.0.0
@@ -34,4 +25,4 @@ jobs:
         path: publish_output
 
     - name: Cleanup artifacts directory
-      run: rm -rf publish_output
+      run: make clean
