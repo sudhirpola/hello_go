@@ -3,6 +3,7 @@ name: Build and Publish
 
 # Trigger: Run this workflow on every push to any branch or when tags are pushed
 on:
+  workflow_dispatch:
   push:
     branches:
       - '**'
